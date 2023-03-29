@@ -420,6 +420,7 @@ end
 
 local on_radiation_damage = function(player, damage, pos)
 	local armor_groups = player.get_armor_groups and player:get_armor_groups()
+	local old_damage = damage;
 	local has_prot = false
 	if armor_groups then
 		local radiation_multiplier = armor_groups.radiation
@@ -435,13 +436,30 @@ local on_radiation_damage = function(player, damage, pos)
 			damage = 0
 		end
 	end
+	if has_prot then
+		-- damage armor..
+		local _, armor_inv = armor.get_valid_player(armor, player, "[radiant_damage]")
+		local armor_list = armor_inv:get_list("armor")
+		for i, stack in pairs(armor_list) do
+			if not stack:is_empty() then
+				local name = stack:get_name()
+				if name:match('lead') then
+					local use = minetest.get_item_group(name, "armor_use") * old_damage * 0.1
+					armor:damage(player, i, stack, use)
+				end
+			end
+		end
+	end
 	damage = math.floor(damage)
 	if damage > 0 then
 		minetest.log("action", player:get_player_name() .. " takes " .. tostring(damage) .. " damage from mese radiation damage at " .. minetest.pos_to_string(pos))
 		player:set_hp(player:get_hp() - damage)
 	end
 	if damage > 0 or has_prot then
-		minetest.sound_play({name = "radiant_damage_geiger", gain = math.min(1, math.max(0.6, damage)/10)}, {to_player=player:get_player_name()})
+		if has_prot then
+			old_damage = old_damage * 0.5
+		end
+		minetest.sound_play({name = "radiant_damage_geiger", gain = math.min(1, math.max(0.6, old_damage)/10)}, {to_player=player:get_player_name()})
 	end
 end
 
