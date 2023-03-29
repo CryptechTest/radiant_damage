@@ -425,7 +425,9 @@ local on_radiation_damage = function(player, damage, pos)
 		local radiation_multiplier = armor_groups.radiation
 		if radiation_multiplier ~= nil then
 			damage = damage * (radiation_multiplier / 100)
-			has_prot = true;
+			if (damage > 0) then
+				has_prot = true;
+			end
 		elseif radiation_multiplier == nil and damage > 0 then
 			damage = 0
 			has_prot = true;
