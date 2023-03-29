@@ -419,7 +419,7 @@ end
 local on_radiation_damage = function(player, damage, pos)
 	local radiation_multiplier = player:get_armor_groups().radiation
 	if radiation_multiplier then
-		damage = damage * radiation_multiplier / 100
+		damage = damage * (radiation_multiplier / 100)
 	end
 	damage = math.floor(damage)
 	if damage > 0 then
