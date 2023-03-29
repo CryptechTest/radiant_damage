@@ -288,7 +288,9 @@ radiant_damage.register_radiant_damage = function(damage_name, damage_def)
 			
 			for _, player in pairs(minetest.get_connected_players()) do
 				local player_pos = player:get_pos() -- node player's feet are in this location. Add 1 to y to get chest height, more intuitive that way
-				player_pos.y = player_pos.y + 1
+				if player_pos.y + 1 < 30927 then
+					player_pos.y = player_pos.y + 1
+				end
 
 				local rounded_pos = vector.round(player_pos)
 				local nearby_nodes
@@ -417,15 +419,27 @@ for _, amp_node in ipairs(amplifiers) do
 end
 
 local on_radiation_damage = function(player, damage, pos)
-	local radiation_multiplier = player:get_armor_groups().radiation
-	if radiation_multiplier then
-		damage = damage * (radiation_multiplier / 100)
+	local armor_groups = player.get_armor_groups and player:get_armor_groups()
+	local has_prot = false
+	if armor_groups then
+		local radiation_multiplier = armor_groups.radiation
+		if radiation_multiplier ~= nil then
+			damage = damage * (radiation_multiplier / 100)
+			has_prot = true;
+		elseif radiation_multiplier == nil and damage > 0 then
+			damage = 0
+			has_prot = true;
+		else
+			damage = 0
+		end
 	end
 	damage = math.floor(damage)
 	if damage > 0 then
 		minetest.log("action", player:get_player_name() .. " takes " .. tostring(damage) .. " damage from mese radiation damage at " .. minetest.pos_to_string(pos))
 		player:set_hp(player:get_hp() - damage)
-		minetest.sound_play({name = "radiant_damage_geiger", gain = math.min(1, damage/10)}, {to_player=player:get_player_name()})
+	end
+	if damage > 0 or has_prot then
+		minetest.sound_play({name = "radiant_damage_geiger", gain = math.min(1, math.max(0.6, damage)/10)}, {to_player=player:get_player_name()})
 	end
 end
 
