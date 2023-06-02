@@ -419,6 +419,9 @@ for _, amp_node in ipairs(amplifiers) do
 end
 
 local on_radiation_damage = function(player, damage, pos)
+	if player:get_hp() <= 0 or damage == 0 then
+		return
+	end
 	local armor_groups = player.get_armor_groups and player:get_armor_groups()
 	local old_damage = damage;
 	local has_prot = false
